@@ -1,0 +1,87 @@
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:300,400);
+
+html {
+	overflow-y: scroll;
+	background: #fafafa;
+	font: 300 18px/2 'Open Sans', sans-serif;
+}
+
+body {
+	width: 600px;
+	margin: 50px auto;
+	padding: 20px;
+	border: 10px solid #f0f0f0;
+	background: #ffffff;
+}
+
+h1 {
+	margin: 0 0 20px;
+	font-weight: 400;
+	text-transform: capitalize;
+}
+
+input, textarea, select {
+	font: 16px monospace;
+}
+
+input {
+	width: 300px;
+	border: 1px solid #c0c0c0;
+}
+
+input[type="submit"] {
+	display: block;
+	width: auto;
+	margin: 10px 0;
+	padding: 5px 20px;
+	background: #fafafa;
+	cursor: pointer;
+}
+
+textarea {
+	width: 594px;
+	min-height: 200px;
+	border: 1px solid #c0c0c0;
+	resize: vertical;
+}
+
+abbr {
+	cursor: help;
+	border-bottom: 1px dotted #c0c0c0;
+}
+
+.frame {
+	width: 590px;;
+	overflow: auto;
+	border: 1px solid #c0c0c0;
+	padding: 5px;
+	font: 16px sans-serif;
+}
+
+.json {
+	font-family: monospace;
+	white-space: pre;
+}
+
+.json .string {
+	color: #2aa198;
+}
+
+.json .maybe-string {
+	background: #f00;
+	color: #ff0;
+}
+
+.json .number {
+	color: #d33682;
+}
+
+.json .null {
+	font-style: italic;
+	color: #b58900;
+}
+
+.break {
+	margin: 10px 0 5px;
+	display: block;
+}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>REST utility</title>
+
+    <link rel="stylesheet" href="./reset.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <h1>REST utility</h1>
+
+    <form id="api">
+      <fieldset>
+        <label>
+          <abbr title="Focus method: Alt+M">M</abbr>ethod:
+          <select id="method" accesskey="m">
+            <option>GET</option>
+            <option>POST</option>
+            <option>PUT</option>
+            <option>DELETE</option>
+          </select>
+        </label>
+
+        <label>
+          <abbr title="Focus URL: Alt+U">U</abbr>RL:
+          <input type="text" id="url" value="/api/" accesskey="u" />
+        </label>
+
+        <label class="break" for="params"><abbr title="Focus parameters: Alt+P">P</abbr>arameters:</label>
+        <textarea id="params" accesskey="p"></textarea>
+
+        <button type="submit" class="break" accesskey="s"><abbr title="Send: Alt+S">S</abbr>end</button>
+      </fieldset>
+
+      <fieldset>
+        <label class="break" for="response">
+          Response:
+          <img id="status" src="./icons/status-offline.png"/>
+        </label>
+        <textarea id="response" readonly></textarea>
+
+        <button id="show-output" class="break" accesskey="o">Show <abbr title="Show/Hide output: Alt+O">O</abbr>utput</button>
+        <div class="frame break json" id="output"></div>
+      </fieldset>
+
+      <fieldset class="showhide">
+        <label class="break">
+          Ignore headers:
+          <input type="text" id="ignoreheaders" />
+        </label>
+      </fieldset>
+    </form>
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>
