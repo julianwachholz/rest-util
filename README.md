@@ -7,7 +7,7 @@ It provides a quick access to your (wip) API and nicely formats common output fo
 Installation
 ------------
 
-Just clone this repository into a folder on the vhost you are going to test.
+Just clone this repository into a folder on the vhost of the API you are going to test.
 That's it!
 
 Usage
