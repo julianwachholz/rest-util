@@ -4,66 +4,136 @@
  * @author jwa
  * @version 2011-11-11
  */
+
+"use strict";
+
 (function (window, $) {
 
-var formatJSON;
+var format;
 
 /**
- * Pretty print an array or object
+ * Pretty print a JSON object
  *
  * @param {Object} json
  * @return {String}
  */
-formatJSON = function(json, l) {
-	var tab, i, oCon, p1, v, pCon, s, p, cl;
+format = (function() {
+	var indentation = '  ',
+		linebreak = '\n',
+		array2string;
 
-	if (!l) {
-		l = 0;
-	}
+	/**
+	 * Concatenate a nested array and keep indentation
+	 *
+	 * @param {Array} arr The array to reduce to a string
+	 * @param {String} separator A separator to use between subsequent lines
+	 * @param {Number} level Current indentation level, used with recursion
+	 *
+	 * @returns {String}
+	 */
+	array2string = function(arr, separator, level) {
+		var string,
+			currentIndentation;
 
-	tab = '';
-	for (i = 0; i < l; i++) {
-		tab += '  ';
-	}
-
-	oCon = json.constructor;
-	p1 = null;
-	v = null;
-	pCon = null;
-	s = tab + (oCon === Object ? '{' : '[');
-
-	for (p in json) {
-		if (json.hasOwnProperty(p)) {
-			pCon = json[p] ? json[p].constructor : null;
-			if (oCon === Array && !/^\d+$/.test(p)) {
-				continue;
-			}
-			p1 = /\s/.test(p) ? '<span class="maybe-string">\'' + p + '\'</span>' : p;
-			if (oCon === Array) {
-				s += '\n' + tab + '  ';
-			} else {
-				s += '\n' + tab + '  ' + p1 + ': ';
-			}
-			if (pCon === Object || pCon === Array) {
-				s += '\n' + formatJSON(json[p], l + 2) + ',';
-			} else if (pCon === Function) {
-				s += '\n' + tab + '    ' + json[p].toString().replace(/\n/g, '\n    ' + tab) + ',';
-			} else {
-				cl = !pCon ? '' + pCon : pCon.name.toLowerCase();
-				v = pCon === String ? '<span class="string">\'' + json[p] + '\'</span>' : '<span class="'+cl+'">' + json[p] + '</span>';
-				s += v + ',';
-			}
+		if (!separator) {
+			separator = '';
 		}
-	}
-	s = s.substring(0, s.length - 1);
-	s += '\n' + tab + (oCon === Object ? '}' : ']');
-	return s;
-};
+		if (!level) {
+			level = 0;
+		}
+
+		currentIndentation = new Array(level+1).join(indentation);
+
+		return arr.reduce(function(previousValue, currentValue, index, currentArray) {
+			var val, type, endline, hasNext;
+			endline = '';
+
+			if (!!currentArray[index + 1]) {
+				hasNext = true;
+				type = currentArray[index + 1] === null ? null : currentArray[index + 1].constructor;
+				if (type !== Array && type !== Object) {
+					endline = separator;
+				}
+			} else {
+				hasNext = false;
+			}
+
+			type = currentValue === null ? null : currentValue.constructor;
+			if (type === Array || type === Object) {
+				val = array2string(currentValue, separator, level + 1) + linebreak;
+			} else {
+				val = currentIndentation + currentValue + endline + (hasNext ? linebreak : '');
+			}
+
+			return previousValue + val;
+		}, "");
+	};
+
+	return {
+		/**
+		 * Formats a JSON object and returns a string representation
+		 *
+		 * @param {Object} json
+		 *
+		 * @returns {String}
+		 */
+		json: function (json) {
+			var format, value;
+
+			format = function(json) {
+				var values = [], line, type, i;
+				for (i in json) {
+					if (json.hasOwnProperty(i)) {
+						type = json[i] === null ? 'null' : json[i].constructor.name.toLowerCase();
+
+						if (json !== null && json.constructor === Array) {
+							line = '<span class="array">' + i + ':</span> ';
+						} else {
+							line = i + ': ';
+						}
+
+						if (type === 'array' || type === 'object') {
+							line += type === 'array' ? '[' : '{';
+							values.push(line);
+							values.push(format(json[i]));
+							line = type === 'array' ? ']' : '}';
+						} else {
+							line += type === 'string' ? '<span class="' + type + '">\'' + json[i] + '\'</span>'
+									: '<span class="' + type + '">' + json[i] + '</span>';
+						}
+
+						values.push(line);
+					}
+				}
+				return values;
+			};
+
+			value = [];
+
+			if (json.constructor === Object) {
+				value.push('{');
+			} else {
+				value.push('[');
+			}
+
+			value.push(format(json));
+
+			if (json.constructor === Object) {
+				value.push('}');
+			} else {
+				value.push(']');
+			}
+
+			return array2string(value, ',');
+		}
+	};
+})();
 
 $(function() {
-	var method, url, params, status, response, output, ignoreHeaders;
+	var method, base, url, params, status, response, output, ignoreHeaders;
 
 	method = $('#method');
+	base = $('#base');
 	url = $('#url');
 	params = $('#params');
 
@@ -81,6 +151,30 @@ $(function() {
 		localStorage.setItem('ignoreHeaders', this.value);
 		ignoreHeaders = this.value.split(',');
 	}).val(ignoreHeaders.join(','));
+
+	if (localStorage.getItem('baseURL')) {
+		base.val(localStorage.getItem('baseURL'));
+	}
+	base.change(function(event) {
+		localStorage.setItem('baseURL', this.value);
+	});
+
+	$('fieldset.showhide').each(function() {
+		var fieldset, label, visible;
+
+		fieldset = $(this);
+		label = fieldset.find('legend').text();
+		visible = false;
+
+		fieldset.before($('<button />', {
+			html: 'Show ' + label
+		}).click(function(event) {
+			event.preventDefault();
+			fieldset.toggle();
+			visible = !visible;
+			this.innerHTML = (visible ? 'Hide ' : 'Show ') + label;
+		}));
+	});
 
 	$('#show-output').click(function(event) {
 		event.preventDefault();
@@ -107,9 +201,9 @@ $(function() {
 
 		output.removeClass('json');
 
-		if(headers.match(/Content-Type: ([a-z\/]+?);/)[1]) {
+		if(headers.match(/Content-Type: ([a-z\/]+?);?/)[1]) {
 			try {
-				output.html(formatJSON($.parseJSON(raw)));
+				output.html(format.json($.parseJSON(raw)));
 				output.addClass('json');
 			} catch(e) {}
 		}
@@ -120,42 +214,62 @@ $(function() {
 	});
 
 	$('#api').submit(function(event) {
+		var crossDomain, request;
 		event.preventDefault();
 
-		$.ajax({
+		request = {
 			type: method.val(),
-			url: url.val(),
-			data: params.val().split('\n').join('&'),
-			complete: function(jqXHR) {
-				var text, i, regex, headers;
+			url: base.val() + url.val(),
+			crossDomain: crossDomain,
+			data: params.val().split('\n').join('&')
+		};
 
-				headers = jqXHR.getAllResponseHeaders().split('\n');
+		crossDomain = base.val().match(/^https?:\/\//) ? true : false;
 
-				for (i in ignoreHeaders) {
-					if (ignoreHeaders.hasOwnProperty(i)) {
-						regex = new RegExp('^' + ignoreHeaders[i] + ':');
-						headers = headers.filter(function(value) {
-							return !regex.test(value);
-						});
-					}
-				}
+		if (crossDomain) {
+			request.dataType = 'jsonp';
+		}
 
-				text = 'HTTP/1.1 ' + jqXHR.status + ' ' + jqXHR.statusText;
-				text += '\n' + headers.join('\n');
-				text += '\n' + jqXHR.responseText;
+		$.ajax(request).always(function(data, unused, jqXHR) {
+			var text, i, regex, headers;
 
-				if (jqXHR.status >= 400) {
-					status.attr('src', 'icons/status-busy.png');
-				} else if (jqXHR.status >= 300) {
-					status.attr('src', 'icons/status-away.png');
-				} else if (jqXHR.status >= 200) {
-					status.attr('src', 'icons/status.png');
-				} else {
-					status.attr('src', 'icons/status-offline.png');
-				}
-
-				response.val(text).change();
+			if ('getAllResponseHeaders' in data) {
+				jqXHR = data;
+				this.crossDomain = false;
 			}
+
+			headers = jqXHR.getAllResponseHeaders().split('\n');
+
+			for (i in ignoreHeaders) {
+				if (ignoreHeaders.hasOwnProperty(i)) {
+					regex = new RegExp('^' + ignoreHeaders[i] + ':');
+					headers = headers.filter(function(value) {
+						return !regex.test(value);
+					});
+				}
+			}
+
+			text = 'HTTP/1.1 ' + jqXHR.status + ' ' + jqXHR.statusText + '\n';
+
+			if (this.crossDomain) {
+				text += 'Content-Type: ' + (this.dataTypes[1] === 'json' ? 'application/json' : 'text/plain') + '\n\n';
+				text += this.dataTypes[1] === 'json' ? JSON.stringify(data) : data;
+			} else {
+				text += headers.join('\n') + '\n';
+				text += jqXHR.responseText;
+			}
+
+			if (jqXHR.status >= 400) {
+				status.attr('src', 'icons/status-busy.png');
+			} else if (jqXHR.status >= 300) {
+				status.attr('src', 'icons/status-away.png');
+			} else if (jqXHR.status >= 200) {
+				status.attr('src', 'icons/status.png');
+			} else {
+				status.attr('src', 'icons/status-offline.png');
+			}
+
+			response.val(text).change();
 		});
 	});
 });

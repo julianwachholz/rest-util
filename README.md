@@ -13,6 +13,8 @@ That's it!
 Usage
 -----
 
+Here's a screenshot: http://i.imgur.com/Zuk8X.png
+
 To start, choose an HTTP verb to use, enter a URL and press Send. You will see
 the call's output in the Response area together with all headers received.
 
@@ -30,8 +32,12 @@ To see a nicely formatted presentation of your API call, press the Show Output b
 Tips & Tricks
 -------------
 
-- Most fields have an accesskey set, to allow you quick access without the need to
-  use your mouse. They are indicated by the underlined letter in each field or button.
+- Most fields have an accesskey set, allowing you to use the toll with almost no mouse interaction:
+  - *M*ethod
+  - *U*RL
+  - *P*arameters
+  - *S*end
+  - Show/Hide *O*utput
 
 - If you don't need some headers (I bet you don't need the Server: Apache/2..
   header all the time) you can specify those in the Ignore headers field below
@@ -50,6 +56,6 @@ TODO
 ----
 
 - Format XML output
-- Ability to specify additional headers for requests
+- Specify additional headers for requests
 
 **Have fun testing!**

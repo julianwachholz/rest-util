@@ -29,12 +29,11 @@ input {
 	border: 1px solid #c0c0c0;
 }
 
-input[type="submit"] {
+button {
 	display: block;
 	width: auto;
 	margin: 10px 0;
 	padding: 5px 20px;
-	background: #fafafa;
 	cursor: pointer;
 }
 
@@ -45,9 +44,12 @@ textarea {
 	resize: vertical;
 }
 
-abbr {
-	cursor: help;
-	border-bottom: 1px dotted #c0c0c0;
+fieldset.showhide {
+	display: none;
+}
+
+fieldset.showhide legend {
+	display: none;
 }
 
 .frame {
@@ -63,22 +65,24 @@ abbr {
 	white-space: pre;
 }
 
-.json .string {
-	color: #2aa198;
+.json .array {
+	color: #93a1a1;
 }
 
-.json .maybe-string {
-	background: #f00;
-	color: #ff0;
+.json .string {
+	color: #2aa198;
 }
 
 .json .number {
 	color: #d33682;
 }
 
+.json .null, .json .boolean {
+	color: #b58900;
+}
+
 .json .null {
 	font-style: italic;
-	color: #b58900;
 }
 
 .break {

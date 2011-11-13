@@ -13,7 +13,7 @@
     <form id="api">
       <fieldset>
         <label>
-          <abbr title="Focus method: Alt+M">M</abbr>ethod:
+          Method:
           <select id="method" accesskey="m">
             <option>GET</option>
             <option>POST</option>
@@ -23,14 +23,14 @@
         </label>
 
         <label>
-          <abbr title="Focus URL: Alt+U">U</abbr>RL:
-          <input type="text" id="url" value="/api/" accesskey="u" />
+          URL:
+          <input type="text" id="url" value="/" accesskey="u" />
         </label>
 
-        <label class="break" for="params"><abbr title="Focus parameters: Alt+P">P</abbr>arameters:</label>
+        <label class="break" for="params">Parameters:</label>
         <textarea id="params" accesskey="p"></textarea>
 
-        <button type="submit" class="break" accesskey="s"><abbr title="Send: Alt+S">S</abbr>end</button>
+        <button class="break" accesskey="s">Send</button>
       </fieldset>
 
       <fieldset>
@@ -40,14 +40,20 @@
         </label>
         <textarea id="response" readonly></textarea>
 
-        <button id="show-output" class="break" accesskey="o">Show <abbr title="Show/Hide output: Alt+O">O</abbr>utput</button>
+        <button id="show-output" class="break" accesskey="o">Show Output</button>
         <div class="frame break json" id="output"></div>
       </fieldset>
 
       <fieldset class="showhide">
+        <legend>Options</legend>
+
         <label class="break">
           Ignore headers:
           <input type="text" id="ignoreheaders" />
+        </label>
+        <label class="break">
+          Base URL:
+          <input type="text" id="base" value="/api" />
         </label>
       </fieldset>
     </form>
