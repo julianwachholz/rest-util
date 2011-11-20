@@ -9,13 +9,64 @@
 
 (function (window, $) {
 
-var format;
+var format, valueMap;
 
 /**
- * Pretty print a JSON object
- *
- * @param {Object} json
- * @return {String}
+ * String <> Object utility
+ */
+valueMap = (function() {
+	var splitProperty = '\n',
+		splitValue = '=';
+
+	return {
+		/**
+		 * Create an object from a string
+		 *
+		 * @param {String} str
+		 * @returns {Object}
+		 */
+		fromString: function(str) {
+			var obj, properties, property, i;
+
+			obj = {};
+			properties = str.split(splitProperty);
+
+			for (i in properties) {
+				if (properties.hasOwnProperty(i)) {
+					property = properties[i].split(splitValue);
+
+					obj[property[0].trim()] = property[1].trim();
+				}
+			}
+
+			return obj;
+		},
+
+		/**
+		 * Create a string from an object
+		 *
+		 * @param {Object} obj
+		 * @returns {String}
+		 */
+		fromObject: function(obj) {
+			var strArr, property;
+
+			strArr = [];
+			for (property in obj) {
+				if (obj.hasOwnProperty(property)) {
+					strArr.push(property + splitValue + obj[property]);
+				}
+			}
+
+			return strArr.join(splitProperty);
+		}
+	};
+})();
+
+
+/**
+ * Formatter object
+ * Currently supports pretty printing objects (json)
  */
 format = (function() {
 	var indentation = '  ',
@@ -129,8 +180,9 @@ format = (function() {
 	};
 })();
 
+
 $(function() {
-	var method, base, url, params, status, response, output, ignoreHeaders;
+	var method, base, url, params, status, response, output, ignoreHeaders, additionalHeaders;
 
 	method = $('#method');
 	base = $('#base');
@@ -142,15 +194,25 @@ $(function() {
 	output = $('#output').hide();
 
 	ignoreHeaders = [];
+	additionalHeaders = {};
 
 	if (localStorage.getItem('ignoreHeaders')) {
 		ignoreHeaders = localStorage.getItem('ignoreHeaders').split(',');
 	}
-
 	$('#ignoreheaders').change(function(event) {
 		localStorage.setItem('ignoreHeaders', this.value);
 		ignoreHeaders = this.value.split(',');
 	}).val(ignoreHeaders.join(','));
+
+
+	if (localStorage.getItem('additionalHeaders')) {
+		additionalHeaders = valueMap.fromString(localStorage.getItem('additionalHeaders'));
+	}
+	$('#headers').change(function(event) {
+		localStorage.setItem('additionalHeaders', this.value);
+		additionalHeaders = valueMap.fromString(this.value);
+	}).val(valueMap.fromObject(additionalHeaders));
+
 
 	if (localStorage.getItem('baseURL')) {
 		base.val(localStorage.getItem('baseURL'));
@@ -221,7 +283,8 @@ $(function() {
 			type: method.val(),
 			url: base.val() + url.val(),
 			crossDomain: crossDomain,
-			data: params.val().split('\n').join('&')
+			data: params.val().split('\n').join('&'),
+			headers: additionalHeaders
 		};
 
 		crossDomain = base.val().match(/^https?:\/\//) ? true : false;
@@ -233,7 +296,7 @@ $(function() {
 		$.ajax(request).always(function(data, unused, jqXHR) {
 			var text, i, regex, headers;
 
-			if ('getAllResponseHeaders' in data) {
+			if (typeof data !== 'string' && 'getAllResponseHeaders' in data) {
 				jqXHR = data;
 				this.crossDomain = false;
 			}

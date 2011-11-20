@@ -33,15 +33,18 @@ Tips & Tricks
 -------------
 
 - Most fields have an accesskey set, allowing you to use the toll with almost no mouse interaction:
-  - *M*ethod
-  - *U*RL
-  - *P*arameters
-  - *S*end
-  - Show/Hide *O*utput
+  - Method: **M**
+  - URL: **U**
+  - Parameters: **P**
+  - Send: **S**
+  - Show/Hide Output: **O**
 
 - If you don't need some headers (I bet you don't need the Server: Apache/2..
   header all the time) you can specify those in the Ignore headers field below
   the output as a comma separated list. They will get saved in localStorage so don't worry about always setting them again.
+
+- You can also set additional headers that are sent with each request, to test e.g. against OAuth.
+  Just specify the headers in the according field in the Options panel as `key=value` pairs
 
 Colophon
 --------
@@ -56,6 +59,6 @@ TODO
 ----
 
 - Format XML output
-- Specify additional headers for requests
+- -Specify additional headers for requests- done!
 
 **Have fun testing!**
