@@ -280,6 +280,7 @@ $(function() {
 		event.preventDefault();
 
 		request = {
+			cache: false,
 			type: method.val(),
 			url: base.val() + url.val(),
 			crossDomain: crossDomain,
