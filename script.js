@@ -265,6 +265,7 @@ $(function() {
         crossDomain = !!base.val().match(/^https?:\/\//);
 
 		request = {
+			cache: false,
 			type: method.val(),
 			url: base.val() + url.val(),
 			crossDomain: crossDomain,
