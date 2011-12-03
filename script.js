@@ -83,8 +83,7 @@ format = (function() {
 	 * @returns {String}
 	 */
 	array2string = function(arr, separator, level) {
-		var string,
-			currentIndentation;
+		var currentIndentation;
 
 		if (!separator) {
 			separator = '';
@@ -182,7 +181,7 @@ format = (function() {
 
 
 $(function() {
-	var method, base, url, params, status, response, output, ignoreHeaders, additionalHeaders;
+	var method, base, url, params, status, response, output, printOutput, ignoreHeaders, additionalHeaders;
 
 	method = $('#method');
 	base = $('#base');
@@ -191,7 +190,7 @@ $(function() {
 
 	status = $('#status');
 	response = $('#response');
-	output = $('#output').hide();
+	output = $('#output');
 
 	ignoreHeaders = [];
 	additionalHeaders = {};
@@ -199,7 +198,7 @@ $(function() {
 	if (localStorage.getItem('ignoreHeaders')) {
 		ignoreHeaders = localStorage.getItem('ignoreHeaders').split(',');
 	}
-	$('#ignoreheaders').change(function(event) {
+	$('#ignoreheaders').change(function() {
 		localStorage.setItem('ignoreHeaders', this.value);
 		ignoreHeaders = this.value.split(',');
 	}).val(ignoreHeaders.join(','));
@@ -208,7 +207,7 @@ $(function() {
 	if (localStorage.getItem('additionalHeaders')) {
 		additionalHeaders = valueMap.fromString(localStorage.getItem('additionalHeaders'));
 	}
-	$('#headers').change(function(event) {
+	$('#headers').change(function() {
 		localStorage.setItem('additionalHeaders', this.value);
 		additionalHeaders = valueMap.fromString(this.value);
 	}).val(valueMap.fromObject(additionalHeaders));
@@ -217,7 +216,7 @@ $(function() {
 	if (localStorage.getItem('baseURL')) {
 		base.val(localStorage.getItem('baseURL'));
 	}
-	base.change(function(event) {
+	base.change(function() {
 		localStorage.setItem('baseURL', this.value);
 	});
 
@@ -238,46 +237,32 @@ $(function() {
 		}));
 	});
 
-	$('#show-output').click(function(event) {
-		event.preventDefault();
+    /**
+     * Prints formatted output
+     *
+     * @param {String} contentType
+     * @param {String} raw
+     */
+	printOutput = function(contentType, raw) {
+		output.removeClass('json xml html');
 
-		if (!response.val()) {
-			return;
-		}
-
-		if (!output.is(':visible')) {
-			this.innerHTML = 'Hide Output';
-		} else {
-			this.innerHTML = 'Show Output';
-		}
-
-		output.toggle();
-	});
-
-	response.change(function() {
-		var headers, raw;
-
-		raw = this.value.split('\n\n');
-		headers = raw.shift();
-		raw = raw.join('\n\n');
-
-		output.removeClass('json');
-
-		if(headers.match(/Content-Type: ([a-z\/]+?);?/)[1]) {
-			try {
-				output.html(format.json($.parseJSON(raw)));
-				output.addClass('json');
-			} catch(e) {}
-		}
-
-		if (!output.hasClass('json')) {
-			output.html(raw);
-		}
-	});
+        switch (contentType) {
+            case 'application/json':
+                output.addClass('json').html(format.json($.parseJSON(raw)));
+                break;
+            default:
+                output.html(raw);
+                break;
+        }
+	};
 
 	$('#api').submit(function(event) {
 		var crossDomain, request;
 		event.preventDefault();
+
+        status.attr('src', 'icons/loading.gif');
+
+        crossDomain = !!base.val().match(/^https?:\/\//);
 
 		request = {
 			type: method.val(),
@@ -287,14 +272,12 @@ $(function() {
 			headers: additionalHeaders
 		};
 
-		crossDomain = base.val().match(/^https?:\/\//) ? true : false;
-
 		if (crossDomain) {
 			request.dataType = 'jsonp';
 		}
 
 		$.ajax(request).always(function(data, unused, jqXHR) {
-			var text, i, regex, headers;
+			var responseHeaders, responseContent, i, regex, headers;
 
 			if (typeof data !== 'string' && 'getAllResponseHeaders' in data) {
 				jqXHR = data;
@@ -307,19 +290,20 @@ $(function() {
 				if (ignoreHeaders.hasOwnProperty(i)) {
 					regex = new RegExp('^' + ignoreHeaders[i] + ':');
 					headers = headers.filter(function(value) {
-						return !regex.test(value);
+                        return !regex.test(value);
 					});
 				}
 			}
 
-			text = 'HTTP/1.1 ' + jqXHR.status + ' ' + jqXHR.statusText + '\n';
+            responseHeaders = 'HTTP/1.1 ' + jqXHR.status + ' ' + jqXHR.statusText + '\n';
 
 			if (this.crossDomain) {
-				text += 'Content-Type: ' + (this.dataTypes[1] === 'json' ? 'application/json' : 'text/plain') + '\n\n';
-				text += this.dataTypes[1] === 'json' ? JSON.stringify(data) : data;
+                responseHeaders += 'Cross-Domain: true\n';
+                responseHeaders += 'Content-Type: ' + (this.dataTypes[1] === 'json' ? 'application/json' : 'text/plain');
+                responseContent = data;
 			} else {
-				text += headers.join('\n') + '\n';
-				text += jqXHR.responseText;
+                responseHeaders += headers.join('\n');
+                responseContent = jqXHR.responseText;
 			}
 
 			if (jqXHR.status >= 400) {
@@ -332,7 +316,8 @@ $(function() {
 				status.attr('src', 'icons/status-offline.png');
 			}
 
-			response.val(text).change();
+			response.val(responseHeaders.trim());
+            printOutput(responseHeaders.match(/Content-Type: ([a-z-_\/]+)/i)[1], responseContent);
 		});
 	});
 });
